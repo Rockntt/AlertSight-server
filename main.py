@@ -1,13 +1,15 @@
-# pylint: disable=bad-indentation
 # pylint: disable=missing-module-docstring
 # pylint: disable=no-member
 # pylint: disable=dangerous-default-value
+# pylint: disable=import-error
+
+import random
 
 import cv2  # Обратно видео и изображений
 import numpy as np  # Математические операции с векторами
 from ultralytics import YOLO  # Нейросеть OD
 from ultralytics.utils.plotting import Annotator
-import random
+
 
 # модуль логирования
 import logger
@@ -124,28 +126,14 @@ def inference(video_path, model_path='yolov8n.pt', threshold=0.0, classes=[0]):
         results = model.track(frame, verbose=False,
                               classes=classes, conf=threshold,
                               tracker='bytetrack.yaml', persist=True)
-        # for r in results:
-        #
-        #     # Аннотация полученных после обнаружения результатов
-        #     annotator = Annotator(frame)
-        #     boxes = r.boxes
-        #     for box in boxes:
-        #         b = box.xyxy[0]  # координаты bounding box (лево, верх, право, низ)
-        #         c = box.cls
-        #
-        #         annotator.box_label(b, model.names[int(c)]) # отрисовка bounding box
-        #         logs.log(
-        #             f"{model.names[int(c)]} | {str(box.conf)[8:14]}",
-        #             "red")
+
         for result in results:
-            boxes = result.boxes
             annotator = Annotator(frame)
-            for box in boxes:
+            for box in result.boxes:
 
-                b = box.xyxy[0]  # координаты bounding box (лево, верх, право, низ)
-                c = box.cls
-
-                annotator.box_label(b, model.names[int(c)], color=(255, 255, 255), txt_color=(0, 0, 0))  # аннотация
+                annotator.box_label(box.xyxy[0], model.names[int(box.cls)],
+                                    color=(255, 255, 255),
+                                    txt_color=(0, 0, 0))  # аннотация
 
                 # Получение ID объекта
                 track_id = int(box.id) if box.id is not None else None
@@ -159,7 +147,7 @@ def inference(video_path, model_path='yolov8n.pt', threshold=0.0, classes=[0]):
 
                         cv2.imwrite(f'objects/{track_id}_{random.randint(1, 10**5)}.jpg', frame)
                         logs.log(
-                            f"{model.names[int(c)]} | {str(box.conf)[8:14]}",
+                            f"{model.names[int(box.cls)]} | {str(box.conf)[8:14]}",
                             "red")
 
                         # Отметка, что автомобиль сохранен
