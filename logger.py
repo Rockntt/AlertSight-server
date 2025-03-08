@@ -49,7 +49,7 @@ class Logger:
                 status_color = Fore.LIGHTGREEN_EX
             else:
                 status_color = Fore.LIGHTWHITE_EX
-            print(status_color + f"[{formatted_time}] {level}: {message}" + Style.RESET_ALL)
+            print(status_color + f"[{formatted_time}] : {message}" + Style.RESET_ALL)
         f.close()
 
     def close(self):
