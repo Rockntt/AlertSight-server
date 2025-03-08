@@ -13,8 +13,10 @@ from ultralytics.utils.plotting import Annotator
 
 # модуль логирования
 import logger
+from api_driver import API_Driver
 
 # инициализация логгера
+api = API_Driver('http://127.0.0.1:5000')
 logs = logger.Logger()
 logs.init_log_file()
 logs.log("[AlertSight] Logger initialized")
@@ -145,7 +147,12 @@ def inference(video_path, model_path='yolov8n.pt', threshold=0.0, classes=[0]):
                         # x1, y1, x2, y2 = map(int, box.xyxy[0])
                         # car_image = frame[y1:y2, x1:x2]
 
-                        cv2.imwrite(f'objects/{track_id}_{random.randint(1, 10**5)}.jpg', frame)
+                        filename = f'objects/{track_id}_{random.randint(1, 10**5)}.jpg'
+
+                        cv2.imwrite(filename, frame)
+
+                        api.upload(filename, model.names[int(box.cls)], 'kmv-junior')
+
                         logs.log(
                             f"{model.names[int(box.cls)]} | {str(box.conf)[8:14]}",
                             "red")
