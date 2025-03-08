@@ -13,10 +13,10 @@ from ultralytics.utils.plotting import Annotator
 
 # модуль логирования
 import logger
-from api_driver import API_Driver
+from apidriver import ApiDriver
 
 # инициализация логгера
-api = API_Driver('http://127.0.0.1:5000')
+api = ApiDriver('http://127.0.0.1:5000')
 logs = logger.Logger()
 logs.init_log_file()
 logs.log("[AlertSight] Logger initialized")
@@ -66,19 +66,6 @@ def average_video(video_path, n_seconds, fps, output_path):
             for i in range(1, n_frames):
                 cv2.accumulateWeighted(frames[i], avg, 0.01)
             average_frame = cv2.convertScaleAbs(avg)
-
-            # results = model.track(average_frame, verbose=False, classes=[2])
-            #
-            # for r in results:
-            #   annotator = Annotator(average_frame)
-            #
-            #   boxes = r.boxes
-            #   for box in boxes:
-            #     b = box.xyxy[0]  # координаты bounding box (лево, верх, право, низ)
-            #     c = box.cls
-            #
-            #     annotator.box_label(b, model.names[int(c)])
-            # annotated_frame = results[0].plot()
 
             for i in range(5):
                 out.write(average_frame)
@@ -133,9 +120,10 @@ def inference(video_path, model_path='yolov8n.pt', threshold=0.0, classes=[0]):
             annotator = Annotator(frame)
             for box in result.boxes:
 
+                # Аннотация кадра
                 annotator.box_label(box.xyxy[0], model.names[int(box.cls)],
                                     color=(255, 255, 255),
-                                    txt_color=(0, 0, 0))  # аннотация
+                                    txt_color=(0, 0, 0))
 
                 # Получение ID объекта
                 track_id = int(box.id) if box.id is not None else None
@@ -143,21 +131,19 @@ def inference(video_path, model_path='yolov8n.pt', threshold=0.0, classes=[0]):
                 if track_id is not None:
                     if track_id not in saved_objects:
 
-                        # Сохранение изображения происшествия
-                        # x1, y1, x2, y2 = map(int, box.xyxy[0])
-                        # car_image = frame[y1:y2, x1:x2]
-
                         filename = f'objects/{track_id}_{random.randint(1, 10**5)}.jpg'
 
+                        # Сохранение кадра с происшествием
                         cv2.imwrite(filename, frame)
 
+                        # Обращаемся к AlertSight-API, загружаем в БД происшествие
                         api.upload(filename, model.names[int(box.cls)], 'kmv-junior')
 
                         logs.log(
                             f"{model.names[int(box.cls)]} | {str(box.conf)[8:14]}",
                             "red")
 
-                        # Отметка, что автомобиль сохранен
+                        # Отметка, что объект сохранен
                         saved_objects[track_id] = True
 
         cv2.imshow("Inference", frame)
