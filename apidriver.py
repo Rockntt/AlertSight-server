@@ -16,7 +16,7 @@ class ApiDriver:
         :param source_id: Источник фото
         """
         data = {
-            "category": category,
+            "type": category,
             "source_id": source_id,
         }
 
@@ -25,14 +25,11 @@ class ApiDriver:
             files = {
                 "image": img
             }
-        img.close()
-
-        # Отправляем POST-запрос
-        response = requests.post(f"{self.url}/upload", data=data, files=files)
-
-        # Проверяем ответ
-        if response.status_code == 200:
-            print("Upload successful!")
-            print("Response:", response.json())  # Выводим JSON-ответ
-        else:
-            print("Upload failed!")
+            # Отправляем POST-запрос
+            response = requests.post(f"{self.url}/upload", data=data, files=files)
+            # Проверяем ответ
+            if response.status_code == 200:
+                print("Upload successful!")
+                print("Response:", response.json())  # Выводим JSON-ответ
+            else:
+                print("Upload failed!")
